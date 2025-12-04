@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>draustaut — portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050507;
+      --bg-alt: #0b0b10;
+      --accent: #f5f0e6;
+      --accent-soft: #d8d0c0;
+      --accent-strong: #ff7256;
+      --line: #2b2b34;
+      --muted: #8f8b86;
+      --text: #f7f3ec;
+      --radius-lg: 22px;
+      --radius-pill: 999px;
+      --ease-soft: cubic-bezier(0.2, 0.7, 0, 1);
+      --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+      --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.55);
+      --transition-fast: 150ms var(--ease-snap);
+      --transition-med: 260ms var(--ease-soft);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Inter", sans-serif;
+      background: radial-gradient(circle at top, #14141d 0, #050507 55%, #020204 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+    }
+
+    /* Subtle film grain */
+    .grain {
+      pointer-events: none;
+      position: fixed;
+      inset: -40px;
+      opacity: 0.17;
+      mix-blend-mode: soft-light;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='noStitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+      z-index: 1;
+    }
+
+    /* Custom cursor (desktop only) */
+    .cursor-dot,
+    .cursor-ring {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1000;
+      transform: translate3d(-50%, -50%, 0);
+      transition: opacity 200ms ease-out;
+    }
+
+    .cursor-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-strong);
+      mix-blend-mode: screen;
+    }
+
+    .cursor-ring {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(245, 240, 230, 0.3);
+      backdrop-filter: blur(16px);
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent);
+      transition:
+        transform 220ms var(--ease-snap),
+        border 200ms ease-out,
+        background 200ms ease-out;
+    }
+
+    .cursor-ring--active {
+      transform: translate3d(-50%, -50%, 0) scale(0.7);
+      border-color: rgba(255, 114, 86, 0.65);
+      background: radial-gradient(circle, rgba(255, 114, 86, 0.15), transparent);
+    }
+
+    @media (max-width: 900px) {
+      .cursor-dot,
+      .cursor-ring {
+        display: none;
+      }
+    }
+
+    /* Layout shell */
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 20px clamp(16px, 4vw, 28px) 64px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: radial-gradient(circle, var(--accent-strong), #c04b2f);
+      box-shadow: 0 0 14px rgba(255, 114, 86, 0.9);
+    }
+
+    .brand-text {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent-soft);
+    }
+
+    .topbar-nav {
+      display: inline-flex;
+      gap: 8px;
+    }
+
+    .topbar-nav button {
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(90, 86, 80, 0.7);
+      padding: 6px 12px;
+      background: rgba(9, 9, 12, 0.85);
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      cursor: pointer;
+      transition:
+        background var(--transition-fast),
+        color var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast);
+    }
+
+    .topbar-nav button:hover {
+      background: #14131e;
+      transform: translateY(-1px);
+    }
+
+    .topbar-nav button[data-active="true"] {
+      background: var(--accent-strong);
+      color: #140808;
+      border-color: transparent;
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    /* Hero */
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
+      gap: 26px;
+      align-items: flex-end;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 800px) {
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: flex-start;
+      }
+    }
+
+    .hero-main-title {
+      font-size: clamp(40px, 5vw, 52px);
+      line-height: 0.92;
+      text-transform: lowercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 14px;
+    }
+
+    .hero-subtitle {
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 360px;
+      color: var(--muted);
+    }
+
+    .hero-tags {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .hero-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(120, 114, 106, 0.8);
+      color: var(--accent-soft);
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.04), transparent);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero-panel {
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(85, 80, 72, 0.9);
+      background: radial-gradient(circle at top left, #232230, #08070b);
+      box-shadow: var(--shadow-soft);
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .hero-panel-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #89847a;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hero-panel-image {
+      border-radius: calc(var(--radius-lg) - 6px);
+      overflow: hidden;
+      background: #12111a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-panel-image img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      filter: saturate(1.1);
+      transform: scale(1.02);
+      transition: transform 260ms var(--ease-soft);
+    }
+
+    .hero-panel:hover .hero-panel-image img {
+      transform: scale(1.05);
+    }
+
+    /* Section heading */
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .section-heading-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #736f6a;
+    }
+
+    .section-heading-rule {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(129, 124, 116, 0.7), transparent);
+      opacity: 0.7;
+    }
+
+    .section-heading-count {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #69645f;
+    }
+
+    /* Work section with horizontal rows */
+    .work-section {
+      margin-bottom: 32px;
+    }
+
+    .carousel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .carousel-row {
+      position: relative;
+    }
+
+    .carousel-row-header {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #7a756e;
+      margin-bottom: 6px;
+    }
+
+    .carousel-track {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 10px;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .carousel-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .carousel-track {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    /* Each card is one “slide” */
+    .art-card {
+      position: relative;
+      border-radius: var(--radius-lg);
+      background: #111018;
+      border: 1px solid rgba(51, 47, 43, 0.9);
+      overflow: hidden;
+      cursor: pointer;
+      isolation: isolate;
+      transition:
+        transform var(--transition-med),
+        border-color var(--transition-med),
+        box-shadow var(--transition-med),
+        background var(--transition-med);
+      transform-origin: center;
+      opacity: 0;
+      transform: translateY(16px) scale(0.97);
+      flex: 0 0 min(100%, 480px);
+      scroll-snap-align: center;
+    }
+
+    @media (max-width: 720px) {
+      .art-card {
+        flex: 0 0 100%;
+      }
+    }
+
+    .art-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.1), transparent);
+      opacity: 0;
+      mix-blend-mode: soft-light;
+      transition: opacity var(--transition-med);
+      pointer-events: none;
+    }
+
+    .art-card__image {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      background: #050508;
+      filter: saturate(1.08) contrast(1.02);
+      transform: scale(1.0);
+      transform-origin: center;
+      transition: transform 260ms var(--ease-soft);
+    }
+
+    .art-card__meta {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 11px;
+      background: rgba(5, 5, 8, 0.82);
+      border: 1px solid rgba(210, 205, 195, 0.32);
+      backdrop-filter: blur(12px);
+      font-size: 10px;
+      color: var(--accent-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    .art-card__meta span:last-child {
+      opacity: 0.7;
+    }
+
+    .art-card__hint {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: rgba(3, 3, 5, 0.85);
+      border: 1px solid rgba(210, 205, 195, 0.32);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: rgba(240, 235, 225, 0.9);
+    }
+
+    .art-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      border-color: rgba(255, 114, 86, 0.85);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.88);
+      background: radial-gradient(circle at top, #1c1b28, #050509);
+    }
+
+    .art-card:hover::before {
+      opacity: 1;
+    }
+
+    .art-card:hover .art-card__image {
+      transform: scale(1.03);
+    }
+
+    .art-card--visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition:
+        opacity 380ms var(--ease-soft),
+        transform 460ms var(--ease-soft),
+        border-color var(--transition-med),
+        box-shadow var(--transition-med),
+        background var(--transition-med);
+    }
+
+    /* Row arrows */
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border-radius: 999px;
+      border: 1px solid rgba(140, 134, 124, 0.85);
+      background: rgba(5, 5, 8, 0.92);
+      color: #d8d0c0;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      transition:
+        transform 150ms var(--ease-snap),
+        background 150ms ease-out,
+        border-color 150ms ease-out,
+        opacity 150ms ease-out;
+      opacity: 0.85;
+    }
+
+    .carousel-arrow:hover {
+      background: #15131a;
+      border-color: rgba(255, 114, 86, 0.9);
+      transform: translateY(-50%) translateY(-1px);
+    }
+
+    .carousel-arrow--prev {
+      left: -8px;
+    }
+
+    .carousel-arrow--next {
+      right: -8px;
+    }
+
+    @media (max-width: 900px) {
+      .carousel-arrow {
+        width: 26px;
+        height: 26px;
+        font-size: 13px;
+        opacity: 0.7;
+      }
+      .carousel-arrow--prev {
+        left: -4px;
+      }
+      .carousel-arrow--next {
+        right: -4px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      /* On very small screens, arrows float a bit higher to avoid thumbs */
+      .carousel-arrow {
+        top: 46%;
+      }
+    }
+
+    /* About & contact */
+    .info-section {
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(70, 66, 60, 0.9);
+      background: radial-gradient(circle at 0 0, #19151f, #070509);
+      box-shadow: var(--shadow-soft);
+      padding: 16px 16px 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .info-section {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .info-heading {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #7c7871;
+      margin-bottom: 8px;
+    }
+
+    .info-about {
+      font-size: 13px;
+      color: var(--accent-soft);
+      line-height: 1.7;
+      max-width: 420px;
+    }
+
+    .info-about strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .info-contact {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .contact-pill {
+      border-radius: var(--radius-pill);
+      padding: 8px 12px;
+      border: 1px solid rgba(230, 223, 210, 0.26);
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.06), #121018);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--accent-soft);
+      text-decoration: none;
+      cursor: pointer;
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast);
+    }
+
+    .contact-pill span:first-child {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .contact-pill span:last-child {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .contact-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9);
+      border-color: rgba(255, 114, 86, 0.9);
+      background: radial-gradient(circle at top left, #262337, #0b090f);
+    }
+
+    .info-note {
+      font-size: 11px;
+      color: #7a766f;
+      max-width: 260px;
+      line-height: 1.5;
+    }
+
+    /* Overlay viewer */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(0, 0, 0, 0.84), rgba(0, 0, 0, 0.96));
+      backdrop-filter: blur(18px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .overlay--visible {
+      display: flex;
+    }
+
+    .overlay__panel {
+      max-width: 960px;
+      width: 100%;
+      max-height: 90vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 18px;
+      border-radius: 24px;
+      background: radial-gradient(circle at top left, #222132, #050507);
+      border: 1px solid rgba(120, 115, 107, 0.85);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.95);
+      overflow: hidden;
+      padding: 16px;
+      position: relative;
+    }
+
+    @media (max-width: 800px) {
+      .overlay__panel {
+        grid-template-columns: minmax(0, 1fr);
+        max-height: 92vh;
+      }
+    }
+
+    .overlay__preview {
+      border-radius: 18px;
+      overflow: hidden;
+      background: #111018;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay__preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: saturate(1.12);
+    }
+
+    .overlay__meta {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .overlay__top {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .overlay__pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #8d8880;
+    }
+
+    .overlay__tag {
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: rgba(10, 9, 13, 0.8);
+      border: 1px solid rgba(112, 106, 98, 0.9);
+    }
+
+    .overlay__title {
+      font-size: 18px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .overlay__subtitle {
+      font-size: 12px;
+      color: #a29d92;
+      line-height: 1.6;
+    }
+
+    .overlay__details {
+      font-size: 11px;
+      color: #8f8a82;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 16px;
+      margin-top: 6px;
+    }
+
+    .overlay__details span {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .overlay__details small {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 9px;
+      color: #6e6962;
+    }
+
+    .overlay__bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .overlay__button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid rgba(240, 235, 225, 0.26);
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.08), #181621);
+      color: var(--accent-soft);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      padding: 7px 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast),
+        border-color var(--transition-fast);
+    }
+
+    .btn--primary {
+      background: radial-gradient(circle at top left, #ff7256, #b63925);
+      color: #140808;
+      border-color: transparent;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.9);
+    }
+
+    .overlay__hint {
+      font-size: 10px;
+      color: #757069;
+    }
+
+    .overlay__close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #a39e96;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(140, 134, 124, 0.8);
+      background: rgba(5, 5, 7, 0.9);
+      backdrop-filter: blur(12px);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition:
+        transform var(--transition-fast),
+        background var(--transition-fast),
+        border-color var(--transition-fast);
+    }
+
+    .overlay__close-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: radial-gradient(circle, #ff7256, #b63925);
+      box-shadow: 0 0 14px rgba(255, 114, 86, 0.9);
+    }
+
+    .overlay__close:hover {
+      transform: translateY(-1px);
+      background: #151319;
+      border-color: rgba(255, 114, 86, 0.9);
+    }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="cursor-dot"></div>
+  <div class="cursor-ring"></div>
+
+  <main class="shell">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="brand" id="brand-home">
+        <div class="brand-dot"></div>
+        <div class="brand-text">draustaut / studio</div>
+      </div>
+      <nav class="topbar-nav">
+        <button type="button" data-scroll-target="work" data-active="true">
+          work
+        </button>
+        <button type="button" data-scroll-target="about">
+          about
+        </button>
+      </nav>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <h1 class="hero-main-title">draustaut</h1>
+        <p class="hero-subtitle">
+          a variety of works, ranging from things to other things.
+        </p>
+        <div class="hero-tags">
+          <span class="hero-tag">painting</span>
+          <span class="hero-tag">3d modeling/sculpting</span>
+          <span class="hero-tag">animation</span>
+          <span class="hero-tag">game development</span>
+          <span class="hero-tag">programming</span>
+        </div>
+      </div>
+      <aside class="hero-panel">
+        <div class="hero-panel-label">
+          <span>draustaut 2025</span>
+          <span>2025 / surfaces</span>
+        </div>
+        <div class="hero-panel-image">
+          <!-- Hero example image -->
+          <img
+            src="draustautpfp.jpg"
+            alt="Featured artwork by draustaut"
+          />
+        </div>
+      </aside>
+    </section>
+
+    <!-- WORK -->
+    <section class="work-section" id="work">
+      <div class="section-heading">
+        <div class="section-heading-title">selected work</div>
+        <div class="section-heading-rule"></div>
+        <div class="section-heading-count">3 lanes</div>
+      </div>
+
+      <div class="carousel">
+        <!-- Row 1 -->
+        <div class="carousel-row" data-row="1">
+          <div class="carousel-row-header">lane 1</div>
+          <div class="carousel-track">
+            <!-- Card 1 -->
+            <article
+              class="art-card"
+              data-title="soft fracture"
+              data-series="poster studies"
+              data-year="2025"
+              data-role="concept·layout"
+              data-tools="affinity, procreate"
+              data-desc="Poster built around broken grids and a single accent color, exploring fracture as a calm, quiet gesture instead of chaos."
+            >
+              <img
+                class="art-card__image"
+                src="https://placehold.co/900x1200/241b30/f7f3ec?text=soft+fracture"
+                alt="Soft fracture artwork"
+              />
+              <div class="art-card__hint">open</div>
+              <div class="art-card__meta">
+                <span>soft fracture</span>
+                <span>poster / 01</span>
+              </div>
+            </article>
+
+            <!-- Card 2 -->
+            <article
+              class="art-card"
+              data-title="noise atlas"
+              data-series="print series"
+              data-year="2024"
+              data-role="design·print"
+              data-tools="indesign, risograph"
+              data-desc="Layered textures and map-like marks. Printed as a risograph series with shifting registration and ink overlap."
+            >
+              <img
+                class="art-card__image"
+                src="https://placehold.co/1000x700/222632/ece7de?text=noise+atlas"
+                alt="Noise atlas artwork"
+              />
+              <div class="art-card__hint">open</div>
+              <div class="art-card__meta">
+                <span>noise atlas</span>
+                <span>print / 03</span>
+              </div>
+            </article>
+
+            <!-- Card 3 -->
+            <article
+              class="art-card"
+              data-title="glass lung"
+              data-series="album mock"
+              data-year="2025"
+              data-role="art direction"
+              data-tools="photoshop, 3d"
+              data-desc="Album mockup mixing glassy lungs, foliage, and sharp typography. Built as a tactile digital sleeve."
+            >
+              <img
+                class="art-card__image"
+                src="https://placehold.co/900x900/263642/ece5de?text=glass+lung"
+                alt="Glass lung artwork"
+              />
+              <div class="art-card__hint">open</div>
+              <div class="art-card__meta">
+                <span>glass lung</span>
+                <span>cover / concept</span>
+              </div>
+            </article>
+          </div>
+          <button class="carousel-arrow carousel-arrow--prev" type="button" aria-label="Previous">
+            ‹
+          </button>
+          <button class="carousel-arrow carousel-arrow--next" type="button" aria-label="Next">
+            ›
+          </button>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="carousel-row" data-row="2">
+          <div class="carousel-row-header">lane 2</div>
+          <div class="carousel-track">
+            <!-- Card 4 -->
+            <article
+              class="art-card"
+              data-title="field notes"
+              data-series="sketch grid"
+              data-year="2023"
+              data-role="illustration"
+              data-tools="ink, scan, digital"
+              data-desc="Annotated sketches layered over structural lines. A hybrid of notebook margin and poster space."
+            >
+              <img
+                class="art-card__image"
+                src="https://placehold.co/900x1200/2c2430/f6efe4?text=field+notes"
+                alt="Field notes artwork"
+              />
+              <div class="art-card__hint">open</div>
+              <div class="art-card__meta">
+                <span>field notes</span>
+                <span>ink / series</span>
+              </div>
+            </article>
+
+            <!-- Card 5 -->
+            <article
+              class="art-card"
+              data-title="faultline"
+              data-series="layout study"
+              data-year="2024"
+              data-role="type·layout"
+              data-tools="illustrator"
+              data-desc="A vertical layout split by a single line. Type clings to the edge, as if about to slip off."
+            >
+              <img
+                class="art-card__image"
+                src="https://placehold.co/1000x650/272836/efe7de?text=faultline"
+                alt="Faultline artwork"
+              />
+              <div class="art-card__hint">open</div>
+              <div class="art-card__meta">
+                <span>faultline</span>
+                <span>layout / 02</span>
+              </div>
+            </article>
+
+            <!-- Card 6 -->
+            <article
+              class="art-card"
+              data-title="shell archive"
+              data-series="identity concept"
+              data-year="2025"
+              data-role="branding"
+              data-tools="vector, 3d"
+              data-desc="Identity for an imaginary archive. Shell-like symbol, stacked type, pale metallic palette."
+            >
+              <img
+                class="art-card__image"
+                src="https://placehold.co/900x900/343135/f6efe4?text=shell+archive"
+                alt="Shell archive artwork"
+              />
+              <div class="art-card__hint">open</div>
+              <div class="art-card__meta">
+                <span>shell archive</span>
+                <span>identity / concept</span>
+              </div>
+            </article>
+          </div>
+          <button class="carousel-arrow carousel-arrow--prev" type="button" aria-label="Previous">
+            ‹
+          </button>
+          <button class="carousel-arrow carousel-arrow--next" type="button" aria-label="Next">
+            ›
+          </button>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="carousel-row" data-row="3">
+          <div class="carousel-row-header">lane 3</div>
+          <div class="carousel-track">
+            <!-- Card 7 -->
+            <article
+              class="art-card"
+              data-title="frost channel"
+              data-series="motion stills"
+              data-year="2024"
+              data-role="direction"
+              data-tools="after effects"
+              data-desc="Still frame from a motion piece: channels of light running through a glass-like corridor."
+            >
+              <img
+                class="art-card__image"
+                src="https://placehold.co/1100x650/202836/efe7de?text=frost+channel"
+                alt="Frost channel artwork"
+              />
+              <div class="art-card__hint">open</div>
+              <div class="art-card__meta">
+                <span>frost channel</span>
+                <span>frame / motion</span>
+              </div>
+            </article>
+
+            <!-- Card 8 -->
+            <article
+              class="art-card"
+              data-title="static bloom"
+              data-series="texture study"
+              data-year="2023"
+              data-role="exploration"
+              data-tools="mixed digital"
+              data-desc="A bloom made out of static. Noise, radial gradients, and thin type rings."
+            >
+              <img
+                class="art-card__image"
+                src="https://placehold.co/900x900/33283a/f7f2e9?text=static+bloom"
+                alt="Static bloom artwork"
+              />
+              <div class="art-card__hint">open</div>
+              <div class="art-card__meta">
+                <span>static bloom</span>
+                <span>study / noise</span>
+              </div>
+            </article>
+
+            <!-- Card 9 -->
+            <article
+              class="art-card"
+              data-title="horizon grid"
+              data-series="web layout"
+              data-year="2025"
+              data-role="ui·ux concept"
+              data-tools="figma, code"
+              data-desc="Web layout that treats the screen like a horizon: type on the edge, content sliding underneath."
+            >
+              <img
+                class="art-card__image"
+                src="https://placehold.co/1100x650/262a34/efe6dd?text=horizon+grid"
+                alt="Horizon grid artwork"
+              />
+              <div class="art-card__hint">open</div>
+              <div class="art-card__meta">
+                <span>horizon grid</span>
+                <span>web / concept</span>
+              </div>
+            </article>
+          </div>
+          <button class="carousel-arrow carousel-arrow--prev" type="button" aria-label="Previous">
+            ‹
+          </button>
+          <button class="carousel-arrow carousel-arrow--next" type="button" aria-label="Next">
+            ›
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT / CONTACT -->
+    <section class="info-section" id="about">
+      <div>
+        <div class="info-heading">about</div>
+        <p class="info-about">
+          <strong>draustaut</strong> is my art account.
+        </p>
+      </div>
+      <div>
+        <div class="info-heading">contact</div>
+        <div class="info-contact">
+          <!-- Replace with your real email -->
+          <a class="contact-pill" href="mailto:nyoklair@gmail.com">
+            <span>email</span>
+            <span>draustaut email</span>
+          </a>
+          <!-- Replace with your social -->
+          <a class="contact-pill" href="#" target="_blank" rel="noreferrer">
+            <span>discord</span>
+            <span>@draustaut</span>
+          </a>
+          <p class="info-note">
+            Comissions are open whenever, unless otherwise stated. Reach out for prices. Or, if applicable, some other contractual work.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- OVERLAY VIEWER -->
+  <div class="overlay" id="overlay">
+    <div class="overlay__panel">
+      <div class="overlay__preview">
+        <img id="overlay-image" src="" alt="Artwork preview enlarged" />
+      </div>
+      <div class="overlay__meta">
+        <div class="overlay__top">
+          <div class="overlay__pill-row">
+            <span class="overlay__tag" id="overlay-series"></span>
+            <span class="overlay__tag" id="overlay-year"></span>
+          </div>
+          <h2 class="overlay__title" id="overlay-title"></h2>
+          <p class="overlay__subtitle" id="overlay-desc"></p>
+          <div class="overlay__details">
+            <span>
+              <small>role</small>
+              <span id="overlay-role"></span>
+            </span>
+            <span>
+              <small>tools</small>
+              <span id="overlay-tools"></span>
+            </span>
+          </div>
+        </div>
+        <div class="overlay__bottom">
+          <div class="overlay__button-row">
+            <button class="btn btn--primary" type="button">
+              view series
+            </button>
+            <button class="btn" type="button" id="overlay-close-secondary">
+              close
+            </button>
+          </div>
+          <div class="overlay__hint">
+            click outside or press ESC to go back to the lanes.
+          </div>
+        </div>
+      </div>
+      <button class="overlay__close" type="button" id="overlay-close">
+        <span class="overlay__close-dot"></span>
+        <span>back to work</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ===== Custom cursor =====
+    (function () {
+      const dot = document.querySelector(".cursor-dot");
+      const ring = document.querySelector(".cursor-ring");
+      if (!dot || !ring) return;
+
+      let mouseX = window.innerWidth / 2;
+      let mouseY = window.innerHeight / 2;
+      let ringX = mouseX;
+      let ringY = mouseY;
+
+      document.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        dot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+      });
+
+      const animate = () => {
+        const lerp = 0.18;
+        ringX += (mouseX - ringX) * lerp;
+        ringY += (mouseY - ringY) * lerp;
+        ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+        requestAnimationFrame(animate);
+      };
+      animate();
+
+      const activate = () => ring.classList.add("cursor-ring--active");
+      const deactivate = () => ring.classList.remove("cursor-ring--active");
+
+      const clickables = [
+        "a",
+        "button",
+        ".art-card",
+        ".hero-panel",
+        ".contact-pill",
+        ".overlay__close",
+        ".btn"
+      ];
+
+      clickables.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((el) => {
+          el.addEventListener("mouseenter", activate);
+          el.addEventListener("mouseleave", deactivate);
+        });
+      });
+
+      document.addEventListener("mouseleave", () => {
+        dot.style.opacity = "0";
+        ring.style.opacity = "0";
+      });
+
+      document.addEventListener("mouseenter", () => {
+        dot.style.opacity = "1";
+        ring.style.opacity = "1";
+      });
+    })();
+
+    // ===== Navigation scroll =====
+    (function () {
+      const buttons = document.querySelectorAll(".topbar-nav button");
+      const sections = ["work", "about"];
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const targetId = btn.getAttribute("data-scroll-target");
+          if (!targetId) return;
+          const el = document.getElementById(targetId);
+          if (!el) return;
+
+          window.scrollTo({
+            top: el.getBoundingClientRect().top + window.scrollY - 12,
+            behavior: "smooth"
+          });
+
+          buttons.forEach((b) => b.setAttribute("data-active", "false"));
+          btn.setAttribute("data-active", "true");
+        });
+      });
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const id = entry.target.id;
+            buttons.forEach((btn) => {
+              const target = btn.getAttribute("data-scroll-target");
+              btn.setAttribute(
+                "data-active",
+                target === id ? "true" : "false"
+              );
+            });
+          });
+        },
+        { threshold: 0.35 }
+      );
+
+      sections.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+
+      // Brand scrolls to top
+      const brand = document.getElementById("brand-home");
+      if (brand) {
+        brand.addEventListener("click", () => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      }
+    })();
+
+    // ===== Fade-in cards =====
+    (function () {
+      const cards = document.querySelectorAll(".art-card");
+      if (!cards.length) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("art-card--visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.2, rootMargin: "0px 0px -10% 0px" }
+      );
+
+      cards.forEach((card, index) => {
+        card.style.transitionDelay = `${60 + index * 40}ms`;
+        observer.observe(card);
+      });
+    })();
+
+    // ===== Overlay viewer =====
+    (function () {
+      const overlay = document.getElementById("overlay");
+      if (!overlay) return;
+
+      const imgEl = document.getElementById("overlay-image");
+      const titleEl = document.getElementById("overlay-title");
+      const seriesEl = document.getElementById("overlay-series");
+      const yearEl = document.getElementById("overlay-year");
+      const descEl = document.getElementById("overlay-desc");
+      const roleEl = document.getElementById("overlay-role");
+      const toolsEl = document.getElementById("overlay-tools");
+      const closeBtn = document.getElementById("overlay-close");
+      const closeSecondary = document.getElementById("overlay-close-secondary");
+
+      const openOverlay = (card) => {
+        const img = card.querySelector(".art-card__image");
+        if (img && imgEl) {
+          imgEl.src = img.src;
+          imgEl.alt = img.alt || "Artwork preview enlarged";
+        }
+
+        titleEl.textContent = card.getAttribute("data-title") || "";
+        seriesEl.textContent = card.getAttribute("data-series") || "series";
+        yearEl.textContent = card.getAttribute("data-year") || "";
+        descEl.textContent =
+          card.getAttribute("data-desc") || "A selected piece from the archive.";
+        roleEl.textContent =
+          card.getAttribute("data-role") || "design / illustration";
+        toolsEl.textContent =
+          card.getAttribute("data-tools") || "mixed digital tools";
+
+        overlay.classList.add("overlay--visible");
+        document.body.style.overflow = "hidden";
+      };
+
+      const closeOverlay = () => {
+        overlay.classList.remove("overlay--visible");
+        document.body.style.overflow = "";
+      };
+
+      document.querySelectorAll(".art-card").forEach((card) => {
+        card.addEventListener("click", () => openOverlay(card));
+      });
+
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) {
+          closeOverlay();
+        }
+      });
+
+      if (closeBtn) closeBtn.addEventListener("click", closeOverlay);
+      if (closeSecondary) closeSecondary.addEventListener("click", closeOverlay);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay.classList.contains("overlay--visible")) {
+          closeOverlay();
+        }
+      });
+    })();
+
+    // ===== Carousel arrows (per row) =====
+    (function () {
+      const rows = document.querySelectorAll(".carousel-row");
+      if (!rows.length) return;
+
+      rows.forEach((row) => {
+        const track = row.querySelector(".carousel-track");
+        const cards = track ? track.querySelectorAll(".art-card") : [];
+        const prev = row.querySelector(".carousel-arrow--prev");
+        const next = row.querySelector(".carousel-arrow--next");
+
+        if (!track || !cards.length || !prev || !next) return;
+
+        const scrollByOne = (direction) => {
+          const firstCard = cards[0];
+          const cardWidth = firstCard.getBoundingClientRect().width;
+          const gap = 18; // matches CSS gap
+          const amount = direction * (cardWidth + gap);
+          track.scrollBy({ left: amount, behavior: "smooth" });
+        };
+
+        prev.addEventListener("click", () => scrollByOne(-1));
+        next.addEventListener("click", () => scrollByOne(1));
+      });
+    })();
+  </script>
+</body>
+</html>
